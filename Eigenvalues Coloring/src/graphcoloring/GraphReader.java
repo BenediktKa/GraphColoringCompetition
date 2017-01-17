@@ -189,7 +189,7 @@ public class GraphReader {
 			System.out.print(vertexColor[i] + ", ");
 		}
 		System.out.println("");
-		sanityCheck(vertexColor);
+		//sanityCheck(vertexColor);
 	}
 	
 	public static int distinctNumberOfItems(int[] array) {
