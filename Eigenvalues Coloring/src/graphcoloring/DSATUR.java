@@ -4,7 +4,7 @@ package graphcoloring;
 import java.util.Arrays;
 import java.util.Comparator;
 
-public class DSATURfinished {
+public class DSATUR {
 	private int ub, lb, cn, vertices, edges;
 	int[] assignedColors;
 	private int[][] adjacencyMatrix, DSAT;
@@ -13,7 +13,12 @@ public class DSATURfinished {
 	boolean[] removed;
 
 	//constructor
-	public DSATURfinished(int initVertices, int initEdges, int[][] initAdjacencyMatrix) {
+	/**
+	 * @param initVertices
+	 * @param initEdges
+	 * @param initAdjacencyMatrix
+	 */
+	public DSATUR(int initVertices, int initEdges, int[][] initAdjacencyMatrix) {
 		vertices = initVertices;
 		edges = initEdges;
 		adjacencyMatrix = initAdjacencyMatrix;
@@ -25,6 +30,9 @@ public class DSATURfinished {
 	}
 	
 	//for debugging purposes, checks if the calculated coloring is legal
+	/**
+	 * 
+	 */
 	public void sanityCheck() {
 		for (int i = 0; i < vertices; i++)
 			for (int j = 0; j < vertices; j++)
@@ -42,6 +50,9 @@ public class DSATURfinished {
 	}*/
 	
 	//greedy coloring algorithm
+	/**
+	 * 
+	 */
 	public void DSATUR() {
 		forbiddenColors = new int[vertices][vertices];
 		assignedColors = new int[vertices];
@@ -94,6 +105,9 @@ public class DSATURfinished {
 	}
 	
 	//returns the number of the vertex to be colored next
+	/**
+	 * @return
+	 */
 	public int choseVertex() {	
 		sort(1, DSAT);
 		int index = 0;
@@ -117,6 +131,9 @@ public class DSATURfinished {
 	}
 		
 	//deletes the vertex which was just colored from the DSAT-matrix 
+	/**
+	 * @param vertex
+	 */
 	public void delete(int vertex) {
 		int index = 0;
 		int[][] tempDSAT = new int[DSAT.length-1][3];
@@ -134,6 +151,10 @@ public class DSATURfinished {
 	}
 	
 	//sorts int[][] array according to int column (descending)
+	/**
+	 * @param column
+	 * @param array
+	 */
 	public void sort(int column, int[][] array) {
 		Arrays.sort(array, new Comparator<int[]>() {
             @Override
@@ -144,6 +165,9 @@ public class DSATURfinished {
 	}
 	
 	//creates the DSAT-matrix and fills is with the vertex numbers and the degrees of connectivity
+	/**
+	 * 
+	 */
 	public void createDSATMatrix() {
 		DSAT = new int[vertices][3];
 		for (int i = 0; i < vertices; i++) {
@@ -156,6 +180,9 @@ public class DSATURfinished {
 	}
 	
 	//updates the degrees of saturation-values of the nodes adjacent to nodeBefore (the just colored node)
+	/**
+	 * @param nodeBefore
+	 */
 	public void updateDSATMatrix(int nodeBefore) {
 		for (int i = 0; i < vertices; i++) {
 			if (removed[i] == false && adjacencyMatrix[nodeBefore][i] == 1 && checkIfColorIsNotAdjacent(i, nodeBefore)) {
@@ -169,6 +196,11 @@ public class DSATURfinished {
 	}
 	
 	//checks if the color with which the nodeBefore was just colored is already adjacent to the node for which the DSAT-value is being updated
+	/**
+	 * @param index
+	 * @param nodeBefore
+	 * @return
+	 */
 	public boolean checkIfColorIsNotAdjacent(int index, int nodeBefore) {
 		for (int i = 0; i < vertices; i++) {
 			if (forbiddenColors[index][i] == assignedColors[nodeBefore] && i != nodeBefore)
@@ -177,6 +209,9 @@ public class DSATURfinished {
 		return true;
 	}
 	
+	/**
+	 * @return
+	 */
 	public int getUpperBound() {
 		return ub;
 	}
