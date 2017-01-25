@@ -1,5 +1,6 @@
 package graphcoloring;
 
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -13,6 +14,7 @@ public class GraphReader {
 	public static int nodes, edges;
 	public static int lb, ub;
 	public static int adjacencyMatrix[][];
+	public static double pageRankOrder[][];
 	public static boolean mentionedAnswers[];
 	public static int chromaticNumber = -1;
 
@@ -32,6 +34,7 @@ public class GraphReader {
 			} else if(line.startsWith("VERTICES = ")) {
 				nodes = Integer.parseInt(line.substring(11));
 				adjacencyMatrix = new int[nodes][nodes];
+				pageRankOrder = new double[nodes][nodes];
 				continue;
 			} else if(line.startsWith("EDGES = ")) {
 				edges = Integer.parseInt(line.substring(8));
@@ -53,6 +56,8 @@ public class GraphReader {
 		ub = dsatur.getUpperBound();
 		System.out.println("NEW BEST UPPER BOUND = " + ub);
 		
+		pageRankOrder = dsatur.getPageRankOrder();
+		
 		//BRON KERBOSCH
 		BronKerbosch bronKerbosch = new BronKerbosch(nodes, adjacencyMatrix);
 		lb = bronKerbosch.getLowerBound();
@@ -66,9 +71,9 @@ public class GraphReader {
 		
 		mentionedAnswers = new boolean[ub + 1];
 		for(int i = (int)ub - 1; i >= lb; i--) {
-			
+			int count = 0;
 			int vertexColor[] = new int[nodes];
-			colorGraph(0, i, vertexColor);
+			colorGraph((int)pageRankOrder[0][0], i, vertexColor, count);
 		}
 	}
 	
@@ -77,18 +82,21 @@ public class GraphReader {
 	 * @param colorLimit
 	 * @param vertexColor
 	 */
-	public static void colorGraph(int vertex, int colorLimit, int vertexColor[]) {
+	public static void colorGraph(int vertex, int colorLimit, int vertexColor[], int count) {
 		for(int color = 1; color <= colorLimit; color++) {
 			
-			if(mentionedAnswers[color] || (chromaticNumber <= colorLimit && chromaticNumber != -1)) {
+			if(mentionedAnswers[colorLimit] || (chromaticNumber <= colorLimit && chromaticNumber != -1)) {
 				break;
 			}
 			
 			if(canColor(vertex, color, vertexColor)) {
 				vertexColor[vertex] = color;
+				int notColored = -1;
 				
-				if(vertex + 1 < nodes) {
-					colorGraph(vertex + 1, colorLimit, vertexColor);
+				if(++count < nodes) {
+					colorGraph((int)pageRankOrder[count][0], colorLimit, vertexColor, count);
+				} else if((notColored = allColored(vertexColor)) != -1) {
+					colorGraph((int)pageRankOrder[notColored][0], colorLimit, vertexColor, notColored);
 				} else {
 					printResult(distinctNumberOfItems(vertexColor), vertexColor);
 				}
@@ -98,7 +106,7 @@ public class GraphReader {
 	
 	/**
 	 * @param vertex
-	 * @param color
+	 * @param colors
 	 * @param vertexColor
 	 * @return
 	 */
@@ -121,12 +129,26 @@ public class GraphReader {
 			chromaticNumber = distinctElements;
 		}
 		mentionedAnswers[distinctElements] = true;
-		System.out.println("NEW BEST UPPER BOUND: " + distinctElements);
+		System.out.println("NEW BEST UPPER BOUND = " + distinctElements);
 		
 		for(int i = 0; i < vertexColor.length; i++) {
 			System.out.print(vertexColor[i] + ", ");
 		}
 		System.out.println("");
+		sanityCheck(vertexColor);
+	}
+	
+	public static int allColored(int vertexColor[]) {
+		for(int i = 0; i < nodes; i++) {
+			if(vertexColor[i] == 0) {
+				for(int j = 0; j < nodes; j++) {
+					if(i == pageRankOrder[j][0]) {
+						return j;
+					}
+				}
+			}
+		}
+		return -1;
 	}
 	
 	/**
@@ -144,5 +166,19 @@ public class GraphReader {
 				set.add(i);
 
 		return set.size();
+	}
+	
+	public static void sanityCheck(int vertexColor[]) {	
+		for(int i = 0; i < adjacencyMatrix.length; i++) {
+			for(int j = 0; j < adjacencyMatrix[0].length; j++) {
+				if(adjacencyMatrix[i][j] == 1) {
+					if(vertexColor[i] == vertexColor[j]) {
+						System.out.println("Invalid coloring! Nodes " + i + " and " + j);
+						System.out.println("Colors " + vertexColor[i] + " and " + vertexColor[j]);
+					}
+				}
+			}
+		}
+		System.out.println("End of sanity check");
 	}
 }

@@ -1,8 +1,10 @@
 package graphcoloring;
 
+
 //import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Random;
 
 public class DSATUR {
 	private int ub, lb, cn, vertices, edges;
@@ -11,6 +13,10 @@ public class DSATUR {
 	int[][] forbiddenColors;
 	int[][] saturation;
 	boolean[] removed;
+	double[] pageRank;
+	double[][] pageRankOrder;
+	double[] tempPR;
+	double damping = 0.85;
 
 	//constructor
 	/**
@@ -25,7 +31,18 @@ public class DSATUR {
 		ub = 0;
 		lb = 1;
 		removed = new boolean[vertices];
+		
+		//PageRank
+		pageRank = new double[vertices];
+		pageRankOrder = new double[vertices][2];
+		
+		for(int i = 0; i < vertices; i++) {
+			pageRankOrder[i][0] = i;
+		}
+		
+		tempPR = new double[vertices];
 		createDSATMatrix();
+		pageRankMain();
 	    DSATUR();
 	}
 	
@@ -164,6 +181,19 @@ public class DSATUR {
         });
 	}
 	
+	/**
+	 * @param column
+	 * @param array
+	 */
+	public void sortDouble(int column, double[][] array) {
+		Arrays.sort(array, new Comparator<double[]>() {
+            @Override
+            public int compare(final double[] first, final double[] second) {
+            	  return Double.compare(second[column], first[column]);
+            }
+        });
+	}
+	
 	//creates the DSAT-matrix and fills is with the vertex numbers and the degrees of connectivity
 	/**
 	 * 
@@ -210,9 +240,39 @@ public class DSATUR {
 	}
 	
 	/**
+	 * 
+	 */
+	public void pageRankMain() {		
+		Random rG = new Random();
+		for (int k = 0; k < 100; k++) {
+			for (int i = 0; i < vertices; i++) {
+				int nI = rG.nextInt(vertices);
+				pageRank[nI] = (1-damping);
+				for (int j = 0; j < vertices; j++) {
+					if (adjacencyMatrix[nI][j] == 1) {
+						tempPR[nI] += (pageRank[j]/DSAT[j][2]); 
+					}
+				}
+				pageRank[nI] += damping * tempPR[i];
+				//System.out.println("pR: " +i +", iteration " +(k+1) +": " +pageRank[i]);
+			}
+		}
+		
+		for(int i = 0; i < vertices; i++) {
+			pageRankOrder[i][1] = pageRank[i];
+		}
+		
+		sortDouble(1, pageRankOrder);
+	}
+	
+	/**
 	 * @return
 	 */
 	public int getUpperBound() {
 		return ub;
+	}
+	
+	public double[][] getPageRankOrder() {
+		return pageRankOrder;
 	}
 }
